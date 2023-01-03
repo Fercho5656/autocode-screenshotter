@@ -47,6 +47,7 @@ for await (const e of walk(dirArg, options)) {
 }
 
 const containerSelector = '#frame > div.drag-control-points'
+const titleSelector = '#frame > div.app-frame-container > div.app-frame > div.app-frame-header > div.title'
 // const backgroundSelector = '#app > main > section > div:nth-child(2) > div > div > svg'
 console.time('Task completed in ')
 const browser = await puppeteer.launch({
@@ -63,8 +64,15 @@ await page.evaluate(`
 `)
 
 for (const file of files) {
-  //delete children from the code editor
   console.log(`Screenshotting ${file.name}...`)
+  // sets code title
+  await page.click(titleSelector)
+  await page.keyboard.down('Control')
+  await page.keyboard.press('A')
+  await page.keyboard.up('Control')
+  await page.keyboard.press('Backspace')
+  await page.keyboard.type(file.name)
+  // delete children from the code editor
   await page.click(containerSelector)
   await page.keyboard.down('Control')
   await page.keyboard.press('A')
