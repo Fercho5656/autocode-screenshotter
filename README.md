@@ -1,7 +1,3 @@
----
-title: Auto Screenshotter
----
-
 # Auto Screenshotter
 This is a simple Deno script that automates the process of taking screenshots of your code making use of [Ray so](https://ray.so) along with [Puppeteer](https://pptr.dev/)
 
