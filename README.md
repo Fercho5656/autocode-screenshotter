@@ -22,7 +22,7 @@ deno run -A --unstable https://deno.land/x/puppeteer@16.2.0/install.ts
 
 ## Usage
 ```bash
-deno run --allow-read --allow-write --allow-run --allow-env main.ts [dir] [options]
+deno run --allow-read --allow-write --allow-run --allow-env --allow-net main.ts [dir] [options]
 ```
 
 ### Options
