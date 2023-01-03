@@ -74,7 +74,7 @@ for (const file of files) {
   await page.keyboard.type(file.content)
   // take a screenshot of the code editor
   const element = await page.$(containerSelector);
-  await element?.screenshot({ path: `${outputDir}/${file.name}.jpg` });
+  await element?.screenshot({ path: `${outputDir}/${file.name}.png` });
 }
 await browser.close();
 console.timeEnd('Task completed in ')
