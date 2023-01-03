@@ -12,6 +12,8 @@ const flags = parse(Deno.args, {
 const { args } = Deno
 const dirArg = args[0] ?? '.'
 const outputDir = flags.out ?? './screenshots'
+let dir = dirArg
+if (dirArg.at(-1) !== '\\') dir += '\\'
 
 if (flags.help) {
   console.log(`Usage: deno run --allow-read --allow-write --allow-run --allow-env main.ts [dir] [options]`)
@@ -37,11 +39,12 @@ const options: WalkOptions = {
 
 const files = []
 
-for await (const e of walk(dirArg, options)) {
+for await (const e of walk(dir, options)) {
   if (e.isFile) {
     files.push({
       name: e.name,
-      content: new TextDecoder().decode(await Deno.readFile(e.path))
+      content: new TextDecoder().decode(await Deno.readFile(e.path)),
+      path: e.path
     })
   }
 }
@@ -64,7 +67,8 @@ await page.evaluate(`
 `)
 
 for (const file of files) {
-  console.log(`Screenshotting ${file.name}...`)
+  const fileName = file.path.replace(dir, '').replaceAll('\\', '_')
+  console.log(`Screenshotting ${file.name} at ${file.path} as ${fileName}`)
   // sets code title
   await page.click(titleSelector)
   await page.keyboard.down('Control')
@@ -82,7 +86,7 @@ for (const file of files) {
   await page.keyboard.type(file.content)
   // take a screenshot of the code editor
   const element = await page.$(containerSelector);
-  await element?.screenshot({ path: `${outputDir}/${file.name}.png` });
+  await element?.screenshot({ path: `${outputDir}/${fileName}.png` });
 }
 await browser.close();
 console.timeEnd('Task completed in ')
