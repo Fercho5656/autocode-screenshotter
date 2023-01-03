@@ -5,8 +5,8 @@ import minimalArgs from "./utils/minimalArgs.ts";
 import extensions from "./utils/extensions.ts";
 
 const flags = parse(Deno.args, {
-  string: ["out"],
-  boolean: ["help"],
+  string: ['out'],
+  boolean: ['help', 'dark'],
 });
 
 const { args } = Deno
@@ -32,7 +32,7 @@ try {
 
 const options: WalkOptions = {
   exts: extensions,
-  skip: [/node_modules/],
+  skip: [/node_modules/, /.nuxt/],
 }
 
 const files = []
@@ -47,7 +47,7 @@ for await (const e of walk(dirArg, options)) {
 }
 
 const containerSelector = '#frame > div.drag-control-points'
-
+console.time('Task completed in ')
 const browser = await puppeteer.launch({
   headless: true,
   args: minimalArgs,
@@ -58,10 +58,13 @@ await page.goto('https://www.ray.so/');
 // remove controls from the code editor
 await page.evaluate(`
   document.querySelector('#app > main > section').remove()
+  ${flags.dark ? 'document.querySelector("#app").classList.add("dark-mode")' : ''}
 `)
 
+// add dark mode
 for (const file of files) {
   //delete children from the code editor
+  console.log(`Screenshotting ${file.name}...`)
   await page.click(containerSelector)
   await page.keyboard.down('Control')
   await page.keyboard.press('A')
@@ -74,3 +77,4 @@ for (const file of files) {
   await element?.screenshot({ path: `${outputDir}/${file.name}.jpg` });
 }
 await browser.close();
+console.timeEnd('Task completed in ')
