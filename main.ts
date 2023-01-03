@@ -2,6 +2,7 @@ import { walk, WalkOptions } from "https://deno.land/std@0.170.0/fs/mod.ts";
 import { parse } from "https://deno.land/std@0.170.0/flags/mod.ts";
 import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 import minimalArgs from "./utils/minimalArgs.ts";
+import extensions from "./utils/extensions.ts";
 
 const flags = parse(Deno.args, {
   string: ["out"],
@@ -21,7 +22,7 @@ if (flags.help) {
 
 if (!import.meta.main) Deno.exit(0)
 
-console.log('Creating screenshots folder...')
+console.log('Looking for screenshots folder...')
 try {
   await Deno.mkdir(outputDir)
   console.log('Screenshots folder created')
@@ -30,7 +31,7 @@ try {
 }
 
 const options: WalkOptions = {
-  exts: ['.ts', '.js', '.vue', '.astro'],
+  exts: extensions,
   skip: [/node_modules/],
 }
 
@@ -45,12 +46,8 @@ for await (const e of walk(dirArg, options)) {
   }
 }
 
-console.log(`Screenshoting ${files[0].name}`)
-
 const containerSelector = '#frame > div.drag-control-points'
 
-console.time('Screenshoting')
-console.time('Setting browser')
 const browser = await puppeteer.launch({
   headless: true,
   args: minimalArgs,
@@ -63,7 +60,6 @@ await page.evaluate(`
   document.querySelector('#app > main > section').remove()
 `)
 
-console.timeEnd('Setting browser')
 for (const file of files) {
   //delete children from the code editor
   await page.click(containerSelector)
@@ -72,14 +68,9 @@ for (const file of files) {
   await page.keyboard.up('Control')
   await page.keyboard.press('Backspace')
   // focus on the code editor and paste the code from the first file replacing four spaces with two
-  console.time('Searching guilty')
   await page.keyboard.type(file.content)
-  console.timeEnd('Searching guilty')
   // take a screenshot of the code editor
   const element = await page.$(containerSelector);
-  console.time(`Screenshoting ${file.name}`)
   await element?.screenshot({ path: `${outputDir}/${file.name}.jpg` });
-  console.timeEnd(`Screenshoting ${file.name}`)
 }
 await browser.close();
-console.timeEnd('Screenshoting')
