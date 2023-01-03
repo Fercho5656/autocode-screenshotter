@@ -1,6 +1,7 @@
 import { walk, WalkOptions } from "https://deno.land/std@0.170.0/fs/mod.ts";
 import { parse } from "https://deno.land/std@0.170.0/flags/mod.ts";
 import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
+import minimalArgs from "./utils/minimalArgs.ts";
 
 const flags = parse(Deno.args, {
   string: ["out"],
@@ -46,60 +47,26 @@ for await (const e of walk(dirArg, options)) {
 
 console.log(`Screenshoting ${files[0].name}`)
 
-const minimal_args = [
-  '--autoplay-policy=user-gesture-required',
-  '--disable-background-networking',
-  '--disable-background-timer-throttling',
-  '--disable-backgrounding-occluded-windows',
-  '--disable-breakpad',
-  '--disable-client-side-phishing-detection',
-  '--disable-component-update',
-  '--disable-default-apps',
-  '--disable-dev-shm-usage',
-  '--disable-domain-reliability',
-  '--disable-extensions',
-  '--disable-features=AudioServiceOutOfProcess',
-  '--disable-hang-monitor',
-  '--disable-ipc-flooding-protection',
-  '--disable-notifications',
-  '--disable-offer-store-unmasked-wallet-cards',
-  '--disable-popup-blocking',
-  '--disable-print-preview',
-  '--disable-prompt-on-repost',
-  '--disable-renderer-backgrounding',
-  '--disable-setuid-sandbox',
-  '--disable-speech-api',
-  '--disable-sync',
-  '--hide-scrollbars',
-  '--ignore-gpu-blacklist',
-  '--metrics-recording-only',
-  '--mute-audio',
-  '--no-default-browser-check',
-  '--no-first-run',
-  '--no-pings',
-  '--no-sandbox',
-  '--no-zygote',
-  '--password-store=basic',
-  '--use-gl=swiftshader',
-  '--use-mock-keychain',
-];
-const containerSelector = '#export-container'
-const carbonSelector = '#export-container > div > div.react-codemirror2.CodeMirror__container.window-theme__none > div > div.CodeMirror-scroll > div.CodeMirror-sizer > div > div > div > div.CodeMirror-code'
+const containerSelector = '#frame > div.drag-control-points'
 
 console.time('Screenshoting')
-// speed up the screenshot time by using the same browser instance
 console.time('Setting browser')
 const browser = await puppeteer.launch({
   headless: true,
-  args: minimal_args,
+  args: minimalArgs,
   userDataDir: './tmp',
 });
 const page = await browser.newPage();
-await page.goto('https://carbon.now.sh/');
+await page.goto('https://www.ray.so/');
+// remove controls from the code editor
+await page.evaluate(`
+  document.querySelector('#app > main > section').remove()
+`)
+
 console.timeEnd('Setting browser')
 for (const file of files) {
   //delete children from the code editor
-  await page.click(carbonSelector)
+  await page.click(containerSelector)
   await page.keyboard.down('Control')
   await page.keyboard.press('A')
   await page.keyboard.up('Control')
