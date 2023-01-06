@@ -6,7 +6,7 @@ This is a simple Deno script that automates the process of taking screenshots of
 Visit the [Deno website](https://deno.land/) to install Deno.
 ```bash
 git clone https://github.com/Fercho5656/autocode-screenshotter
-cd auto-screenshotter
+cd autocode-screenshotter
 ```
 
 ### Install browser dependencies
