@@ -13,7 +13,10 @@ const { args } = Deno
 const dirArg = args[0] ?? '.'
 const outputDir = flags.out ?? './screenshots'
 let dir = dirArg
-if (dirArg.at(-1) !== '\\') dir += '\\'
+
+if (Deno.build.os === "windows") {
+  dir += '\\'
+}
 
 if (flags.help) {
   console.log(`Usage: deno run --allow-read --allow-write --allow-run --allow-env main.ts [dir] [options]`)
@@ -49,9 +52,10 @@ for await (const e of walk(dir, options)) {
   }
 }
 
-const containerSelector = '#frame > div.drag-control-points'
-const titleSelector = '#frame > div.app-frame-container > div.app-frame > div.app-frame-header > div.title'
-// const backgroundSelector = '#app > main > section > div:nth-child(2) > div > div > svg'
+const mainSelector = '#__next > div'
+const baseSelector = `${mainSelector} > div:nth-child(2) > div > div:nth-child(3) > div > div`
+const titleSelector = `${baseSelector} div input`
+const containerSelector = `${baseSelector} textarea`
 console.time('Task completed in ')
 const browser = await puppeteer.launch({
   headless: true,
@@ -61,10 +65,15 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.goto('https://www.ray.so/');
 // remove controls from the code editor and add dark mode if setted
-await page.evaluate(`
-  document.querySelector('#app > main > section').remove()
-  ${flags.dark ? 'document.querySelector("#app").classList.add("dark-mode")' : ''}
+console.log(mainSelector)
+try {
+  await page.evaluate(`
+  document.querySelector('${mainSelector} > div:nth-child(1)').remove()
+  document.querySelector('#__next > div').dataset.theme = "${flags.dark ? 'dark' : 'light'}"
 `)
+} catch (err) {
+  console.log(`cannot clean page, ignoring theme: ${err.toString()}`)
+}
 
 for (const file of files) {
   const fileName = file.path.replace(dir, '').replaceAll('\\', '_')
